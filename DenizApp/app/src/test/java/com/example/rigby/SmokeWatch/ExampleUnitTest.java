@@ -1,4 +1,4 @@
-package com.example.rigby.denizapp;
+package com.example.rigby.SmokeWatch;
 
 import org.junit.Test;
 

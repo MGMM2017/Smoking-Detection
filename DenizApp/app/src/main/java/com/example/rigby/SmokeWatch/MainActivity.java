@@ -1,4 +1,4 @@
-package com.example.rigby.denizapp;
+package com.example.rigby.SmokeWatch;
 
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +8,10 @@ import android.widget.Button;
 import android.view.View.OnClickListener;
 import android.view.View;
 import android.widget.TextView;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothSocket;
+import android.bluetooth.BluetoothHealthCallback;
+
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -18,15 +22,16 @@ import java.io.OutputStreamWriter;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
-    Button button;
+    Button buttonCount;
     Button buttonClear;
+    Button buttonBluetooth;
     TextView textView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = (TextView) findViewById(R.id.textView);
-        button = (Button) findViewById(R.id.button);
+        buttonCount = (Button) findViewById(R.id.button);
         buttonClear = (Button) findViewById(R.id.button2);
         final Context context = getApplicationContext();
         if(readFromFile(context)==null){
@@ -36,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
             textView.setText(countLinesFromFile(context).toString());
         }
 
-        button.setOnClickListener(new OnClickListener() {
+        buttonCount.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View arg0) {

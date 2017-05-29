@@ -1,4 +1,4 @@
-package com.example.rigby.denizapp;
+package com.example.rigby.SmokeWatch;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.example.rigby.denizapp", appContext.getPackageName());
+        assertEquals("com.example.rigby.SmokeWatch", appContext.getPackageName());
     }
 }
