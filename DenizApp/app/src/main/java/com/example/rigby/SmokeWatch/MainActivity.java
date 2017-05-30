@@ -22,14 +22,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Calendar;
+import java.util.Set;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     Button buttonCount;
     Button buttonClear;
     Button buttonConnect;
     TextView textView;
-    AlertDialog alertDialog;
-    DialogInterface dialogInterface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void connectBT(Context context) {
         int REQUEST_BLUETOOTH = 1;
+        ArrayList <DeviceItem>deviceItemList;
 
         BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
         if (BTAdapter == null) {
@@ -148,6 +149,16 @@ public class MainActivity extends AppCompatActivity {
             if (!BTAdapter.isEnabled()) {
                 Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBT, REQUEST_BLUETOOTH);
+            }
+
+            Log.d("DEVICELIST", "Super called for DeviceListFragment onCreate\n");
+            deviceItemList = new ArrayList<DeviceItem>();
+            Set<BluetoothDevice> pairedDevices = BTAdapter.getBondedDevices();
+            if (pairedDevices.size() > 0) {
+                for (BluetoothDevice device : pairedDevices) {
+                    DeviceItem newDevice= new DeviceItem(device.getName(),device.getAddress(),"false");
+                    deviceItemList.add(newDevice);
+                }
             }
         }
     }
