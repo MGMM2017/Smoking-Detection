@@ -1,6 +1,9 @@
 package com.example.rigby.SmokeWatch;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,9 +12,8 @@ import android.view.View.OnClickListener;
 import android.view.View;
 import android.widget.TextView;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.bluetooth.BluetoothHealthCallback;
-
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -24,15 +26,20 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity {
     Button buttonCount;
     Button buttonClear;
-    Button buttonBluetooth;
+    Button buttonConnect;
     TextView textView;
+    AlertDialog alertDialog;
+    DialogInterface dialogInterface;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         textView = (TextView) findViewById(R.id.textView);
         buttonCount = (Button) findViewById(R.id.button);
         buttonClear = (Button) findViewById(R.id.button2);
+        buttonConnect = (Button) findViewById(R.id.button4);
         final Context context = getApplicationContext();
         if(readFromFile(context)==null){
             textView.setText("0");
@@ -60,6 +67,14 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText(readFromFile(context));
             }
         });
+
+        buttonConnect.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                connectBT(context);
+            }
+        });
+
     }
 
     private void writeToFile(String data,Context context) {
@@ -106,10 +121,34 @@ public class MainActivity extends AppCompatActivity {
     private void clearFile(Context context) {
         try {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("stats.txt", Context.MODE_PRIVATE));
-            outputStreamWriter.write("");
+            outputStreamWriter.write("0");
             outputStreamWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void connectBT(Context context) {
+        int REQUEST_BLUETOOTH = 1;
+
+        BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (BTAdapter == null) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Not compatible")
+                    .setMessage("Your phone does not support Bluetooth")
+                    .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                                System.exit(0);
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+        }
+        else{
+            if (!BTAdapter.isEnabled()) {
+                Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBT, REQUEST_BLUETOOTH);
+            }
         }
     }
 

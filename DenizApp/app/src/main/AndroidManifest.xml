@@ -3,6 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.rigby.SmokeWatch">
     <uses-sdk tools:overrideLibrary="eu.senseable.sparklib"/>
+    package="com.tutsplus.matt.bluetoothscanner" >
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application
         android:allowBackup="true"
