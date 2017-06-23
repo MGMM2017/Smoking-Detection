@@ -16,6 +16,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Calendar;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 public class MainActivity extends AppCompatActivity {
     Button button;
@@ -34,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
         }
         else{
             textView.setText(countLinesFromFile(context).toString());
+            drawGraph(context);
+
         }
 
         button.setOnClickListener(new OnClickListener() {
@@ -44,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
                 String date = c.getTime().toString();
                 writeToFile(date,context);
                 textView.setText(countLinesFromFile(context).toString());
+                drawGraph(context);
+
             }
 
         });
@@ -53,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 clearFile(context);
                 textView.setText(readFromFile(context));
+                drawGraph(context);
             }
         });
     }
@@ -130,6 +138,15 @@ public class MainActivity extends AppCompatActivity {
             Log.e("login activity", "Can not read file: " + e.toString());
         }
         return numberOfLines;
+    }
+
+    private void drawGraph(Context context){
+        Integer numberOfEntries = Integer.parseInt(countLinesFromFile(context).toString());
+        DataPoint[] dp = new DataPoint[numberOfEntries];
+        for(int i=0; i<numberOfEntries; i++) {
+            dp[i] = new DataPoint(1, i);
+        }
+
     }
 
 }
