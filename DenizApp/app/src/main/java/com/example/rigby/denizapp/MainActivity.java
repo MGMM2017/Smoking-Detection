@@ -1,12 +1,13 @@
 package com.example.rigby.denizapp;
 
+import android.app.AlertDialog;
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Button;
-import android.view.View.OnClickListener;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -15,19 +16,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Calendar;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+import java.sql.SQLException;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     Button button;
     Button buttonClear;
     TextView textView;
+    List<TimeAndLocation> values;
+    private TimeAndLocationDataSource timeAndLocationSource;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        timeAndLocationSource = new TimeAndLocationDataSource(this);
+        try {
+            timeAndLocationSource.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        values = timeAndLocationSource.getAllTimeAndLoc();
+
         textView = (TextView) findViewById(R.id.textView);
         button = (Button) findViewById(R.id.button);
         buttonClear = (Button) findViewById(R.id.button2);
@@ -45,9 +58,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View arg0) {
-                Calendar c = Calendar.getInstance();
-                String date = c.getTime().toString();
-                writeToFile(date,context);
+                java.util.Date date = new java.util.Date();
+                String dateString = new java.sql.Timestamp(date.getTime()).toString();
+                TimeAndLocation tlo = timeAndLocationSource.createTime(dateString, "1", "Mylocation");
+                writeToFile(dateString,context);
                 textView.setText(countLinesFromFile(context).toString());
                 drawGraph(context);
 
@@ -61,6 +75,15 @@ public class MainActivity extends AppCompatActivity {
                 clearFile(context);
                 textView.setText(readFromFile(context));
                 drawGraph(context);
+                String forDebug = "";
+                int a;
+                for (a = 0; a<values.size();a++){
+                    forDebug += values.get(a).getId();
+                    forDebug += values.get(a).getNicotin();
+                    forDebug += values.get(a).getTime();
+                    forDebug += values.get(a).getLocation();
+                }
+                printData("DB Results",forDebug);
             }
         });
     }
@@ -142,11 +165,23 @@ public class MainActivity extends AppCompatActivity {
 
     private void drawGraph(Context context){
         Integer numberOfEntries = Integer.parseInt(countLinesFromFile(context).toString());
-        DataPoint[] dp = new DataPoint[numberOfEntries];
-        for(int i=0; i<numberOfEntries; i++) {
-            dp[i] = new DataPoint(1, i);
-        }
 
+        //DataPoint[] dp = new DataPoint[];
+        //for(int i=0; i<numberOfEntries; i++) {
+           // dp[i] = new DataPoint(i*i, i);
+        //}
+//see code https://github.com/appsthatmatter/GraphView-Demos/blob/master/app/src/main/java/com/jjoe64/graphview_demos/examples/Dates.java
     }
+
+    private void printData(String title , String message)
+    {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
+    }
+
 
 }
