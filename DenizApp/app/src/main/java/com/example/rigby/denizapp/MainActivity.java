@@ -10,14 +10,24 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.sql.Date;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
+
+import static com.example.rigby.denizapp.R.id.graph;
 
 public class MainActivity extends AppCompatActivity {
     Button button;
@@ -164,7 +174,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void drawGraph(Context context){
-        Integer numberOfEntries = Integer.parseInt(countLinesFromFile(context).toString());
+        Date date;
+        SimpleDateFormat sdfmt1 = new SimpleDateFormat();
+        int numberOfLabels = values.size();
+        GraphView graphView = (GraphView) findViewById(graph);
+
+        /*DataPoint[] dp =new DataPoint[values.size()];
+        for(int i = 0; i<values.size();i++){
+            try {
+                date = (Date) sdfmt1.parse(values.get(i).getTime());
+                int nicotin = Integer.parseInt(values.get(i).getNicotin());
+                dp[i] =  new DataPoint(date,nicotin);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dp);*/
+
+
+        // generate Dates
+        Calendar calendar = Calendar.getInstance();
+        java.util.Date d1 = calendar.getTime();
+        calendar.add(Calendar.DATE, 1);
+        java.util.Date d2 = calendar.getTime();
+        calendar.add(Calendar.DATE, 1);
+        java.util.Date d3 = calendar.getTime();
+
+        // you can directly pass Date objects to DataPoint-Constructor
+        // this will convert the Date to double via Date#getTime()
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
+                new DataPoint(d1, 1),
+                new DataPoint(d2, 5),
+                new DataPoint(d3, 3)
+        });
+        graphView.addSeries(series);
+
+
+        graphView.addSeries(series);
+        graphView.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(graphView.getContext()));
+        graphView.getGridLabelRenderer().setNumHorizontalLabels(numberOfLabels);
+
+        graphView.getViewport().setMinX(4);
+        graphView.getViewport().setMaxX(6);
+        graphView.getViewport().setXAxisBoundsManual(true);
+
+
+
+        //Integer numberOfEntries = Integer.parseInt(countLinesFromFile(context).toString());
 
         //DataPoint[] dp = new DataPoint[];
         //for(int i=0; i<numberOfEntries; i++) {
