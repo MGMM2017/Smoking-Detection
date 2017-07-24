@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">DenizApp</string>
+    <string name="graphmodes_prompt">Choose Graph</string>
+
+    <string-array name="graphmodes">
+        <item>Hourly</item>
+        <item>Weekly</item>
+        <item>Monthly</item>
+    </string-array>
 </resources>

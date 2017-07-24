@@ -16,28 +16,28 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_TIME = "time";
     public static final String COLUMN_NICOTIN = "nicotin";
-    public static final String COLUMN_LOCATION = "location";
+    public static final String COLUMN_LOCATION_LONG = "long";
+    public static final String COLUMN_LOCATION_LAT = "lat";
 
 
 
     private static final String DATABASE_NAME = "timeandlocation.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 10;
 
     // Database creation sql statement
     private static final String DATABASE_CREATE =  "CREATE TABLE IF NOT EXISTS "
             + TABLE_TIMELOCATION + "( " + COLUMN_ID + " integer PRIMARY KEY, "
-            + COLUMN_TIME + " TEXT, "+  COLUMN_NICOTIN +" TEXT, " + COLUMN_LOCATION+ " TEXT )";
+            + COLUMN_TIME + " TEXT," +  COLUMN_NICOTIN +" TEXT," + COLUMN_LOCATION_LONG + " DOUBLE," + COLUMN_LOCATION_LAT + " DOUBLE" + ")";
+
 
     public SQLLiteDBHelper (Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+
     @Override
     public void onCreate(SQLiteDatabase database) {
-        database.execSQL(
-                "create table timeandlocation " +
-                        "(id integer primary key, time text,nicotin text,location text)"
-        );
+        database.execSQL(DATABASE_CREATE);
     }
 
     @Override
@@ -49,19 +49,5 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    /*public ArrayList<String> getAllTimeAndLocation() {
-        ArrayList<String> array_list = new ArrayList<String>();
-
-        //hp = new HashMap();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from timeandlocation", null );
-        res.moveToFirst();
-
-        while(res.isAfterLast() == false){
-            array_list.add(res.getString(res.getColumnIndex(COLUMN_TIME)));
-            res.moveToNext();
-        }
-        return array_list;
-    }*/
 
 }
