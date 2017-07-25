@@ -243,10 +243,10 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
     public void addRecord(View view) {
 
         getLocation();
-       // String what= addDate();
+        String what= getTime();
 
-       // tt.addRecord(what,Long,Lat);
-       // timeandlocatoin.createTime(what,Long,Lat);
+       tt.addRecord(what,Long,Lat);
+       timeandlocatoin.createTime(what,"1",Long,Lat);
 
    // t.setText(String.valueOf(Long));
 
