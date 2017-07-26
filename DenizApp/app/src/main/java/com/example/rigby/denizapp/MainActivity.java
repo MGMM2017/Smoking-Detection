@@ -99,7 +99,6 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
         setContentView(R.layout.newlayout);
 
 
@@ -238,33 +237,23 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
             });
 }
 
-
     // calls the add record method from the DB class
     public void addRecord(View view) {
 
+        //get the current location
         getLocation();
-        String what= getTime();
-
-       tt.addRecord(what,Long,Lat);
-       timeandlocatoin.createTime(what,"1",Long,Lat);
-
-   // t.setText(String.valueOf(Long));
-
-     //object.addRecord(addDate(),Long,Lat);
-
-
+        // add the time and current location to the database
+       tt.addRecord(getTime(),Long,Lat);
 
     }
 
-
-
-    private void printData(String title , String message) {
+/*    private void printData(String title , String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
         builder.setTitle(title);
         builder.setMessage(message);
         builder.show();
-    }
+    } */
 
 
     public String getTime()
@@ -275,8 +264,7 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
         return  dateString;
     }
 
-
-
+    /*
     private DataPoint[] getData() {
         SQLiteDatabase db;
         String[] columns ={"1","Time"};
@@ -288,7 +276,7 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
             dp[i]= new DataPoint(1,cursor.getInt(1));
         }
         return dp;
-    }
+    }*/
 
     // not sure why i need this , i did not use it
     protected void createLocationRequest() {
@@ -296,7 +284,6 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
         mLocationRequest.setInterval(5000);
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
     }
 
     // shows the MapActivity when the button is clicked
@@ -315,15 +302,4 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
         Intent showMapintent = new Intent(MainActivity.this , graphs.class);
         startActivity(showMapintent);
     }
-
-/**
-        catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
-        } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
-        }
-        return numberOfLines;
-    }
-**/
-
 }

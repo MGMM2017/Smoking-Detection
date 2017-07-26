@@ -47,6 +47,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap=googleMap;
         SQLLiteDBHelper d =new SQLLiteDBHelper(this);
         Cursor rs = d.getLocation();
@@ -56,6 +57,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 LatLng location = new LatLng(rs.getDouble(4), rs.getDouble(3));
                 mMap.addMarker(new MarkerOptions().position(location).title(date));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        location,12));
             }
         }
       }
