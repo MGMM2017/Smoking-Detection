@@ -48,6 +48,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
@@ -71,27 +74,34 @@ import eu.senseable.sparklib.Spark;
 public class MainActivity extends AppCompatActivity {
 
     Button addData;
-    TextView t;
+    TextView viewdate;
+    TextView numberofcigs;
+    TextView costofcigs;
 
-    double Long=1;
-    double Lat=1;
+    TabHost tabHost;
 
+
+    //location variables
+    double Long;
+    double Lat;
+    public LocationRequest mLocationRequest = new LocationRequest();
+    FusedLocationProviderClient mFusedLocationClient;
+    private GoogleApiClient mGoogleApiClient;
+
+
+    //geofencing variable
     PendingIntent mGeofencePendingIntent;
     GeofencingClient mGeofencingClient;
     private List<Geofence> mGeofenceList;
 
-//    Geofence g =  new Geofence.Builder().setCircularRegion(48.013515, 7.830392,100).setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |Geofence.GEOFENCE_TRANSITION_EXIT).build();
+    public static final String TAG = "Activity";
+
 
     // DB
     SQLiteDatabase sqliteDatabase;
-   // DB object = new DB(this);
     TimeAndLocationDataSource timeandlocatoin = new TimeAndLocationDataSource(this);
-SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
-    // google maps api get location
-    FusedLocationProviderClient mFusedLocationClient;
-    String total2;
+    SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
 
-    TabHost tabHost;
 
 
 
@@ -102,15 +112,15 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
         setContentView(R.layout.newlayout);
 
 
-        //addData = (Button) findViewById(R.id.button2);
-       // t = (TextView) findViewById(R.id.t);
-        DB db = new DB(this);
+        viewdate = (TextView) findViewById(R.id.editText);
+        numberofcigs = (TextView) findViewById(R.id.editText2);
+        costofcigs = (TextView) findViewById(R.id.editText7);
+
 
         mGeofencingClient = LocationServices.getGeofencingClient(this);
         mGeofenceList = new ArrayList<Geofence>();
 
 
-        sqliteDatabase = db.getWritableDatabase();
         getLocation();
 /*
         //tabhost
@@ -129,40 +139,10 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
         host.addTab(spec);
 */
 
-
-
-        createGeofences(Lat, Long);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
-                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        // Geofences added
-                        // ...
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Failed to add geofences
-                        // ...
-                    }
-                });
-
-
-        //getGeofencingRequest();
-        //getGeofencePendingIntent();
-
+        //show the current time
+        viewdate.setText(addDate());
+        numberofcigs.setText(String.valueOf(cigssmoked()));
+        costofcigs.setText(String.valueOf(cigssmoked()*0.35)+"$");
 
     }
 
@@ -179,13 +159,11 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
         mGeofenceList.add(fence);
     }
 
-    @NonNull
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(mGeofenceList);
         return builder.build();
-
     }
 
 
@@ -204,7 +182,8 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
 
     }
 
-    
+
+
 
     void getLocation()
 {
@@ -212,13 +191,9 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
     mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-        // TODO: Consider calling
-        //    ActivityCompat#requestPermissions
-        // here to request the missing permissions, and then overriding
-        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-        //                                          int[] grantResults)
-        // to handle the case where the user grants the permission. See the documentation
-        // for ActivityCompat#requestPermissions for more details.
+        int resp = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (resp == ConnectionResult.SUCCESS) {
+
         return;
     }
     mFusedLocationClient.getLastLocation()
@@ -231,62 +206,55 @@ SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
                         Long = location.getLongitude();
                         //total2 = String.valueOf(Lat);
                     } else
+                       // LocationServices.FusedLocationApi.requestLocationUpdates(location, mLocationRequest, this);
 
                         Log.e("Error :","there is no location");
                 }
             });
-}
+}}
 
-    // calls the add record method from the DB class
+    // this only gets the current time
+    private String addDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm ");
+
+        Cursor rs = tt.getLocation();
+        rs.moveToLast();
+        String date = rs.getString(1);
+        String currentDateandTime = sdf.format(new Date());
+        return currentDateandTime;
+    }
+
+    // this only gets the current number of cigs smoked so far
+    int  cigssmoked() {
+        Cursor rs = tt.getLocation();
+        return rs.getCount();
+    }
+
+    // calls the add record method to add a cigarette manually
     public void addRecord(View view) {
 
         //get the current location
         getLocation();
         // add the time and current location to the database
        tt.addRecord(getTime(),Long,Lat);
-
     }
-
-/*    private void printData(String title , String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setTitle(title);
-        builder.setMessage(message);
-        builder.show();
-    } */
 
 
     public String getTime()
     {
-
         java.util.Date date = new java.util.Date();
         String dateString = new java.sql.Timestamp(date.getTime()).toString();
         return  dateString;
     }
 
-    /*
-    private DataPoint[] getData() {
-        SQLiteDatabase db;
-        String[] columns ={"1","Time"};
-        Cursor cursor = sqliteDatabase.query("TABLE_User",columns,null,null,null,null,null);
-        DataPoint[] dp = new DataPoint[cursor.getCount()];
-        for(int i=0; i<cursor.getCount(); i++)
-        {
-           cursor.moveToNext();
-            dp[i]= new DataPoint(1,cursor.getInt(1));
-        }
-        return dp;
-    }*/
-
     // not sure why i need this , i did not use it
     protected void createLocationRequest() {
-        LocationRequest mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(5000);
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
-    // shows the MapActivity when the button is clicked
+    //shows the MapActivity when the button is clicked
     public void showMap(View view) {
         Intent showMapintent = new Intent(MainActivity.this , MapsActivity.class);
         startActivity(showMapintent);
