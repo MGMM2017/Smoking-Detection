@@ -7,36 +7,24 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import java.util.ArrayList;
 
 
 public class HeatMap  extends FragmentActivity implements OnMapReadyCallback {
-    private GoogleMap mMap;
 
-    MainActivity object= new MainActivity();
-    DB db= new DB(this);
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+        setContentView(R.layout.heat_map);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
 
     private void addHeatMap() {
 
@@ -60,10 +48,40 @@ public class HeatMap  extends FragmentActivity implements OnMapReadyCallback {
         // Add a tile overlay to the map, using the heat map tile provider.
         mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
     }
+
+    private void addweeklyHeatMap() {
+
+        ArrayList<LatLng> list = new ArrayList<LatLng>();
+
+        // Get the data: latitude/longitude positions of police stations.
+        java.util.Date date = new java.util.Date();
+        String dateString = new java.sql.Timestamp(date.getTime()).toString();
+        String today = dateString.substring(0, 6);
+        SQLLiteDBHelper d =new SQLLiteDBHelper(this);
+        Cursor rs = d.getLocation();
+         if ((rs != null) && (rs.getCount() > 0)){
+            while (rs.moveToNext()) {
+
+                String dd = rs.getString(1).substring(0, 6);
+                if ( dd.equals(today)) {
+                LatLng location = new LatLng(rs.getDouble(4), rs.getDouble(3));
+                list.add( new LatLng(rs.getDouble(4), rs.getDouble(3)));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        location,13));}
+            }
+
+        // Create a heat map tile provider, passing it the latlngs of the police stations.
+        HeatmapTileProvider provider = new HeatmapTileProvider.Builder().data(list).build();
+        // Add a tile overlay to the map, using the heat map tile provider.
+        mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));}
+    }
+
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        addHeatMap();
+        addweeklyHeatMap();
     }
 
 

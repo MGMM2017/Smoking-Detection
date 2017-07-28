@@ -31,6 +31,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -46,6 +48,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -77,9 +80,12 @@ public class MainActivity extends AppCompatActivity {
     TextView viewdate;
     TextView numberofcigs;
     TextView costofcigs;
+    TextView todaycigs;
+
 
     TabHost tabHost;
-
+    public double cost=0;
+    DecimalFormat numberFormat = new DecimalFormat("#.00");
 
     //location variables
     double Long;
@@ -115,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         viewdate = (TextView) findViewById(R.id.editText);
         numberofcigs = (TextView) findViewById(R.id.editText2);
         costofcigs = (TextView) findViewById(R.id.editText7);
-
+        todaycigs = (TextView) findViewById(R.id.editText4);
 
         mGeofencingClient = LocationServices.getGeofencingClient(this);
         mGeofenceList = new ArrayList<Geofence>();
@@ -140,10 +146,13 @@ public class MainActivity extends AppCompatActivity {
 */
 
         //show the current time
+
+
         viewdate.setText(addDate());
         numberofcigs.setText(String.valueOf(cigssmoked()));
-        costofcigs.setText(String.valueOf(cigssmoked()*0.35)+"$");
-
+        cost= cigssmoked() * 0.35;
+        costofcigs.setText(numberFormat.format(cost)+"$");
+        todaycigs.setText(String.valueOf(cigssmokedtoday()));
     }
 
 
@@ -158,15 +167,12 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         mGeofenceList.add(fence);
     }
-
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(mGeofenceList);
         return builder.build();
     }
-
-
      private PendingIntent getGeofencePendingIntent() {
 
         // Reuse the PendingIntent if we already have it.
@@ -182,53 +188,72 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
-
     void getLocation()
-{
-    // google maps api get location
-    mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+    {
+        // google maps api get location
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-        int resp = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (resp == ConnectionResult.SUCCESS) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            Lat = location.getLatitude();
+                            Long = location.getLongitude();
+                        } else
 
-        return;
+                            Log.e("Error :","there is no location");
+                    }
+                });
     }
-    mFusedLocationClient.getLastLocation()
-            .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    // Got last known location. In some rare situations this can be null.
-                    if (location != null) {
-                        Lat = location.getLatitude();
-                        Long = location.getLongitude();
-                        //total2 = String.valueOf(Lat);
-                    } else
-                       // LocationServices.FusedLocationApi.requestLocationUpdates(location, mLocationRequest, this);
 
-                        Log.e("Error :","there is no location");
-                }
-            });
-}}
 
-    // this only gets the current time
+    // this gets the last time somked a cig and sets the first text box to it, if DB is empty gets the current time
     private String addDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm ");
-
+        DateFormat sdf = new SimpleDateFormat("HH:mm a");
         Cursor rs = tt.getLocation();
-        rs.moveToLast();
-        String date = rs.getString(1);
-        String currentDateandTime = sdf.format(new Date());
-        return currentDateandTime;
+        if((rs != null) && (rs.getCount() > 0)) {
+            rs.moveToLast();
+            String string = rs.getString(1);
+            return string.substring(10,16);}
+        else {
+            String currentDateandTime = sdf.format(new Date());
+            return currentDateandTime;}
     }
 
     // this only gets the current number of cigs smoked so far
     int  cigssmoked() {
         Cursor rs = tt.getLocation();
-        return rs.getCount();
+        if ((rs != null) && (rs.getCount() > 0))
+            return rs.getCount();
+        else
+        return 0;
     }
+    int  cigssmokedtoday() {
+        java.util.Date date = new java.util.Date();
+        String dateString = new java.sql.Timestamp(date.getTime()).toString();
+        String today = dateString.substring(0, 10);
+        int a=0;
+        Cursor rs = tt.getLocation();
+        if ((rs != null) && (rs.getCount() > 0)){
+        while (rs.moveToNext()) {
+            String d = rs.getString(1);
+            String dd = d.substring(0, 10);
+            if ( dd.equals(today)) {
+                a++;}}
+            return a;}
+        else return 0;}
 
     // calls the add record method to add a cigarette manually
     public void addRecord(View view) {
@@ -237,6 +262,12 @@ public class MainActivity extends AppCompatActivity {
         getLocation();
         // add the time and current location to the database
        tt.addRecord(getTime(),Long,Lat);
+        viewdate.setText(addDate());
+        numberofcigs.setText(String.valueOf(cigssmoked()));
+        cost= cigssmoked() * 0.35;
+        costofcigs.setText(numberFormat.format(cost)+"$");
+        todaycigs.setText(String.valueOf(cigssmokedtoday()));
+
     }
 
 

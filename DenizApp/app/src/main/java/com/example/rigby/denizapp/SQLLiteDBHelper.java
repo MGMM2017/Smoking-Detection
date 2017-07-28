@@ -21,7 +21,7 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
 
 
     private static final String DATABASE_NAME = "timeandlocation.db";
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
 
     // Database creation sql statement
     private static final String DATABASE_CREATE =  "CREATE TABLE IF NOT EXISTS "
@@ -70,6 +70,8 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
         Cursor res =  db.rawQuery(  "SELECT * FROM timeandlocation" , null);
         return res;
     }
+
+
 }
 
 
