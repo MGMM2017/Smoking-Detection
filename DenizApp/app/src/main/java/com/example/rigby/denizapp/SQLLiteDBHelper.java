@@ -21,7 +21,7 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
 
 
     private static final String DATABASE_NAME = "timeandlocation.db";
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 10;
 
     // Database creation sql statement
     private static final String DATABASE_CREATE =  "CREATE TABLE IF NOT EXISTS "
