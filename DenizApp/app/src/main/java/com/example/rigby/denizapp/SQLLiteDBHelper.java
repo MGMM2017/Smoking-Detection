@@ -65,12 +65,12 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
 
     }
 
+    // returns all records for further parsing mainly for location data
     public Cursor getLocation() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery(  "SELECT * FROM timeandlocation" , null);
         return res;
     }
-
 
 }
 

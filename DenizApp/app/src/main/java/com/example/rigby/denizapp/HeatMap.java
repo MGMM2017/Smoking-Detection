@@ -30,7 +30,6 @@ public class HeatMap  extends FragmentActivity implements OnMapReadyCallback {
 
         ArrayList<LatLng> list = new ArrayList<LatLng>();
 
-        // Get the data: latitude/longitude positions of police stations.
 
         SQLLiteDBHelper d =new SQLLiteDBHelper(this);
         Cursor rs = d.getLocation();
@@ -53,7 +52,6 @@ public class HeatMap  extends FragmentActivity implements OnMapReadyCallback {
 
         ArrayList<LatLng> list = new ArrayList<LatLng>();
 
-        // Get the data: latitude/longitude positions of police stations.
         java.util.Date date = new java.util.Date();
         String dateString = new java.sql.Timestamp(date.getTime()).toString();
         String today = dateString.substring(0, 6);

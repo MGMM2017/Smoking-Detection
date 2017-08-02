@@ -32,10 +32,10 @@ public class GeofenceTransitionsIntentService extends IntentService{
         // Get the transition type.
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
-            showNotification("Entered", "Entered the Location");
+            showNotification("Be careful! You are heading to dangerous territory", ",you may be are tempted to smoke here ");
         }
         else if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            showNotification("Exited", "Exited the Location");
+            showNotification("Hopefully ", "you did not cave");
         } else {
             showNotification("Error", "Error");
         }
@@ -55,7 +55,7 @@ public class GeofenceTransitionsIntentService extends IntentService{
 
         // 3. Create and send a notification
         Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.smokingcalendericon)
                 .setContentTitle(text)
                 .setContentText(text)
                 .setContentIntent(pendingNotificationIntent)

@@ -1,5 +1,6 @@
 package com.example.rigby.denizapp;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.database.Cursor;
@@ -54,6 +55,8 @@ import java.util.UUID;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
@@ -71,31 +74,29 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-
 import eu.senseable.sparklib.Spark;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button addData;
     TextView viewdate;
     TextView numberofcigs;
     TextView costofcigs;
     TextView todaycigs;
 
-
-    TabHost tabHost;
-    public double cost=0;
+    public double cost = 0;
     DecimalFormat numberFormat = new DecimalFormat("#.00");
 
     //location variables
-    double Long;
-    double Lat;
+    double Long=0;
+    double Lat=0;
     public LocationRequest mLocationRequest = new LocationRequest();
     FusedLocationProviderClient mFusedLocationClient;
-    private GoogleApiClient mGoogleApiClient;
+   // GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this).addApi(LocationServices.API).build();
 
 
     //geofencing variable
+    double visitedlong=0;
+    double visitedlat=0;
     PendingIntent mGeofencePendingIntent;
     GeofencingClient mGeofencingClient;
     private List<Geofence> mGeofenceList;
@@ -104,11 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // DB
-    SQLiteDatabase sqliteDatabase;
-    TimeAndLocationDataSource timeandlocatoin = new TimeAndLocationDataSource(this);
-    SQLLiteDBHelper tt=new SQLLiteDBHelper(this);
-
-
+    SQLLiteDBHelper tt = new SQLLiteDBHelper(this);
 
 
     @Override
@@ -118,62 +115,65 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.newlayout);
 
 
+        getmostvisitedlatlong();
         viewdate = (TextView) findViewById(R.id.editText);
         numberofcigs = (TextView) findViewById(R.id.editText2);
         costofcigs = (TextView) findViewById(R.id.editText7);
         todaycigs = (TextView) findViewById(R.id.editText4);
 
+
+
         mGeofencingClient = LocationServices.getGeofencingClient(this);
         mGeofenceList = new ArrayList<Geofence>();
+        String id = UUID.randomUUID().toString();
+        mGeofenceList.add(new Geofence.Builder()
+                // Set the request ID of the geofence. This is a string to identify this
+                // geofence.
+                .setRequestId(id)
+                .setCircularRegion(visitedlat,visitedlong,100)
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                        Geofence.GEOFENCE_TRANSITION_EXIT).build());
+        addGeofence();
 
 
         getLocation();
-/*
-        //tabhost
-        TabHost host = (TabHost)findViewById(R.id.tabHost);
-        host.setup();
-
-        //Tab 1
-        TabHost.TabSpec spec = host.newTabSpec("Tab One");
-        spec.setContent(R.id.tab1);
-        spec.setIndicator("Tab One");
-        host.addTab(spec);
-        //Tab 2
-        spec = host.newTabSpec("Tab Two");
-        spec.setContent(R.id.tab2);
-        spec.setIndicator("Tab Two");
-        host.addTab(spec);
-*/
-
-        //show the current time
-
 
         viewdate.setText(addDate());
         numberofcigs.setText(String.valueOf(cigssmoked()));
-        cost= cigssmoked() * 0.35;
-        costofcigs.setText(numberFormat.format(cost)+"$");
+        cost = cigssmoked() * 0.35;
+        costofcigs.setText(numberFormat.format(cost) + "$");
         todaycigs.setText(String.valueOf(cigssmokedtoday()));
+
+
     }
 
 
 
-    public void createGeofences(double latitude, double longitude) {
+    //geofencing
+
+    //create the geofence area
+    public List<Geofence> createGeofences(double latitude, double longitude) {
         String id = UUID.randomUUID().toString();
         Geofence fence = new Geofence.Builder()
                 .setRequestId(id)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
-                .setCircularRegion(latitude, longitude, 200)
+                .setCircularRegion(latitude, longitude, 50)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build();
         mGeofenceList.add(fence);
+        return mGeofenceList;
     }
+
+    //receives the geofence area to be monitered and what action to trigger
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(mGeofenceList);
         return builder.build();
     }
-     private PendingIntent getGeofencePendingIntent() {
+
+    private PendingIntent getGeofencePendingIntent() {
 
         // Reuse the PendingIntent if we already have it.
 
@@ -183,11 +183,45 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeGeofences().
-        return PendingIntent.getService(this, 0, intent, PendingIntent.
+        mGeofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.
                 FLAG_UPDATE_CURRENT);
+        return mGeofencePendingIntent;
 
     }
 
+    // Add the created GeofenceRequest to the device's monitoring list
+    private void addGeofence() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Geofences added
+                        // ...
+                        Log.e("Great news :","Geofence added");
+                    }})
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Failed to add geofences
+                        // ...
+
+                        Log.e("Error :","Geofence Failed ");
+                    }});
+    }
+
+
+
+    //location
     void getLocation()
     {
         // google maps api get location
@@ -213,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                             Long = location.getLongitude();
                         } else
 
-                            Log.e("Error :","there is no location");
+                            Log.e(" :","");
                     }
                 });
     }
@@ -300,5 +334,45 @@ public class MainActivity extends AppCompatActivity {
     public void showgraphs(View view) {
         Intent showMapintent = new Intent(MainActivity.this , graphs.class);
         startActivity(showMapintent);
+    }
+
+
+    // find the post visited location to create a geofence over it
+    public void getmostvisitedlatlong()
+    {
+        Cursor rs = tt.getLocation();
+        int length= rs.getCount();
+        String[] LongLat= new String [length];
+        int s=0;
+
+
+        if ((rs != null) && (rs.getCount() > 0)) {
+            while (rs.moveToNext()) {
+                LongLat[s] = rs.getDouble(4) + "," + rs.getDouble(3);
+                Log.d("value of array", LongLat[s]);
+                s++;
+            }
+            int count = 1, tempCount;
+            String popular = LongLat[0];
+            String temp;
+            for (int i = 0; i < (LongLat.length - 1); i++) {
+                temp = LongLat[i];
+                tempCount = 0;
+                for (int j = 1; j < LongLat.length; j++) {
+                    if (temp.equals(LongLat[j]))
+                        tempCount++;
+                }
+                if (tempCount > count) {
+                    popular = temp;
+                    count = tempCount;
+                }
+            }
+            String[] popularlocation= {""};
+            popularlocation=popular.split(",");
+            visitedlat= Double.valueOf((popularlocation[0]));
+            visitedlong=Double.valueOf(popularlocation[1]);
+        }
+        else
+            return;
     }
 }
