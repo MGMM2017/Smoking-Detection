@@ -32,10 +32,10 @@ public class GeofenceTransitionsIntentService extends IntentService{
         // Get the transition type.
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
-            showNotification("Be careful! You are heading to dangerous territory", ",you may be are tempted to smoke here ");
+            showNotification("Be careful!You are heading to dangerous area", "you may be are tempted to smoke here ");
         }
         else if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            showNotification("Hopefully ", "you did not cave");
+            showNotification("Hopefully you did not cave ", "");
         } else {
             showNotification("Error", "Error");
         }
