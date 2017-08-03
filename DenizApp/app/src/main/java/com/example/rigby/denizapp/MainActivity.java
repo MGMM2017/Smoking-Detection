@@ -46,16 +46,16 @@ public class MainActivity extends AppCompatActivity {
     DecimalFormat numberFormat = new DecimalFormat("#.00");
 
     //location variables
-    double Long=0;
-    double Lat=0;
+    double Long;
+    double Lat;
     public LocationRequest mLocationRequest = new LocationRequest();
     FusedLocationProviderClient mFusedLocationClient;
    // GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this).addApi(LocationServices.API).build();
 
 
     //geofencing variable
-    double visitedlong=0;
-    double visitedlat=0;
+    double visitedlong;
+    double visitedlat;
     PendingIntent mGeofencePendingIntent;
     GeofencingClient mGeofencingClient;
     private List<Geofence> mGeofenceList;
@@ -67,13 +67,19 @@ public class MainActivity extends AppCompatActivity {
     SQLLiteDBHelper tt = new SQLLiteDBHelper(this);
 
     private Spark mSpark = null;
+    int flag=0;
     private Spark.Callbacks mSparkCalls = new Spark.Callbacks.Stub() {
         @Override
         public void onEventsChanged(List<Spark.Event> events) {
+
+           if (flag==1)
+            {
             super.onEventsChanged(events);
 
             int numcigs = events.size();
             addRecord(viewdate);
+            }
+            flag=1;
             //System.out.println("DNZDBG numcigs =" +numcigs);
         }
     };
