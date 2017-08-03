@@ -21,7 +21,7 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
 
 
     private static final String DATABASE_NAME = "timeandlocation.db";
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
 
     // Database creation sql statement
     private static final String DATABASE_CREATE =  "CREATE TABLE IF NOT EXISTS "
@@ -53,6 +53,8 @@ public class SQLLiteDBHelper extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_TIME, date);
+        values.put(COLUMN_NICOTIN,1);
+
         values.put(COLUMN_LOCATION_LONG, Long);
         values.put(COLUMN_LOCATION_LAT, lat);
 
