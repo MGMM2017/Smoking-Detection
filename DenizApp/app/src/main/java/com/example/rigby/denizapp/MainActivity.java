@@ -2,79 +2,38 @@ package com.example.rigby.denizapp;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.provider.SyncStateContract;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutCompat;
-import android.util.Log;
-import android.widget.Button;
-import android.view.View.OnClickListener;
-import android.view.View;
-import android.widget.ListView;
-import android.widget.ScrollView;
-import android.widget.TabHost;
-import android.widget.TextView;
-import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
-import android.provider.Settings;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Date;
-
-import android.widget.ArrayAdapter;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-//import com.google.android.gms.location.sample.basiclocationsample.R;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 import eu.senseable.sparklib.Spark;
+
+//import com.google.android.gms.location.sample.basiclocationsample.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -106,6 +65,18 @@ public class MainActivity extends AppCompatActivity {
 
     // DB
     SQLLiteDBHelper tt = new SQLLiteDBHelper(this);
+
+    private Spark mSpark = null;
+    private Spark.Callbacks mSparkCalls = new Spark.Callbacks.Stub() {
+        @Override
+        public void onEventsChanged(List<Spark.Event> events) {
+            super.onEventsChanged(events);
+
+            int numcigs = events.size();
+            addRecord(viewdate);
+            //System.out.println("DNZDBG numcigs =" +numcigs);
+        }
+    };
 
 
     @Override
@@ -145,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         costofcigs.setText(numberFormat.format(cost) + "$");
         todaycigs.setText(String.valueOf(cigssmokedtoday()));
 
-
+        mSpark = new Spark(this, mSparkCalls);
     }
 
 
