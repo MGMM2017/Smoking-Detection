@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
             int numcigs = events.size();
             addRecord(viewdate);
-            System.out.println("DNZDBG numcigs =" +numcigs);
+            //System.out.println("DNZDBG numcigs =" +numcigs);
         }
     };
 
